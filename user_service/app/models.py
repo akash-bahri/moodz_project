@@ -8,7 +8,10 @@ def get_user_by_username(username: str):
             FilterExpression="username = :username",
             ExpressionAttributeValues={":username": username}
         )
-        return response.get("Items", [])
+        items = response.get("Items", [])
+        if not items:
+            return None
+        return  items[0]
     except ClientError as e:
         raise e
 
