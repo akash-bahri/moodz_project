@@ -1,12 +1,5 @@
 from fastapi import FastAPI, HTTPException, APIRouter
-from app.models import (
-    get_user_by_username, 
-    get_user_by_id, 
-    create_user, 
-    update_following_list, 
-    update_follower_list, 
-    USER_TABLE  # Import USER_TABLE here
-)
+from app.models import get_user_by_username, get_user_by_id, create_user, add_follower, add_following, remove_follower, remove_following, add_follower, add_following, remove_follower, remove_following
 from app.utils import hash_password, verify_password, create_access_token
 import uuid
 from datetime import datetime
@@ -33,11 +26,17 @@ class GetUserRequest(BaseModel):
     username: str
 
 class FollowRequest(BaseModel):
-    user_id: str
-    target_user_id: str
+    follower_id: str
+    followed_id: str
 
+class FollowRequest(BaseModel):
+    follower_id: str
+    followed_id: str
 
 # Endpoints
+@router.get("/")
+def health():
+    return {"status": "ok", "status_code": 200}
 
 @router.post("/register")
 def register(request: RegisterRequest):
@@ -61,16 +60,72 @@ def register(request: RegisterRequest):
         "username": username,
         "email": email,
         "password_hash": hashed_password,
-        "created_at": str(datetime.utcnow()),
-        "followers": [],  # Initialize an empty followers list
-        "following": []   # Initialize an empty following list
+        "followers": [],
+        "following": [],
+        "followers": [],
+        "following": [],
+        "created_at": str(datetime.utcnow())
     }
 
     create_user(user_data)  # Store the new user in DynamoDB
 
     return {"message": "User registered successfully", "user": {"id": user_id, "username": username}}
 
-@router.post("/login")
+
+@app.post("/follow")
+def follow(request: FollowRequest):
+    follower_id = request.follower_id
+    followed_id = request.followed_id
+
+    if not get_user_by_id(follower_id) or not get_user_by_id(followed_id):
+        raise HTTPException(status_code=404, detail="User not found")
+
+    add_following(follower_id, followed_id)
+    add_follower(followed_id, follower_id)
+
+    return {"message": f"User {follower_id} is now following User {followed_id}"}
+
+@app.post("/unfollow")
+def unfollow(request: FollowRequest):
+    follower_id = request.follower_id
+    followed_id = request.followed_id
+
+    if not get_user_by_id(follower_id) or not get_user_by_id(followed_id):
+        raise HTTPException(status_code=404, detail="User not found")
+
+    remove_following(follower_id, followed_id)
+    remove_follower(followed_id, follower_id)
+
+    return {"message": f"User {follower_id} has unfollowed User {followed_id}"}
+
+
+@app.post("/follow")
+def follow(request: FollowRequest):
+    follower_id = request.follower_id
+    followed_id = request.followed_id
+
+    if not get_user_by_id(follower_id) or not get_user_by_id(followed_id):
+        raise HTTPException(status_code=404, detail="User not found")
+
+    add_following(follower_id, followed_id)
+    add_follower(followed_id, follower_id)
+
+    return {"message": f"User {follower_id} is now following User {followed_id}"}
+
+@app.post("/unfollow")
+def unfollow(request: FollowRequest):
+    follower_id = request.follower_id
+    followed_id = request.followed_id
+
+    if not get_user_by_id(follower_id) or not get_user_by_id(followed_id):
+        raise HTTPException(status_code=404, detail="User not found")
+
+    remove_following(follower_id, followed_id)
+    remove_follower(followed_id, follower_id)
+
+    return {"message": f"User {follower_id} has unfollowed User {followed_id}"}
+
+@app.post("/login")
 def login(request: LoginRequest):
     """
     Endpoint to log a user in and generate a JWT token.

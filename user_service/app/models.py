@@ -1,4 +1,4 @@
-from app import USER_TABLE, FOLLOW_TABLE
+from app import USER_TABLE
 from botocore.exceptions import ClientError
 
 # User Table Helpers
@@ -40,111 +40,78 @@ def create_user(user_data: dict):
     except ClientError as e:
         print(f"Error creating user: {e}")
         raise e
-
-
-# Follow Table Helpers
-
-def update_following_list(user_id: str, target_user_id: str, action: str):
-    """
-    Update the `following` list for a user.
-    """
+    
+def add_follower(user_id: str, follower_id: str):
     try:
-        if action == "add":
-            # Add the target_user_id to the `following` list
-            USER_TABLE.update_item(
-                Key={"id": user_id},
-                UpdateExpression="SET following = list_append(if_not_exists(following, :empty_list), :target)",
-                ExpressionAttributeValues={
-                    ":target": [target_user_id],
-                    ":empty_list": []
-                }
-            )
-        elif action == "remove":
-            # Fetch the current following list
-            response = USER_TABLE.get_item(Key={"id": user_id})
-            user = response.get("Item")
-            if not user or "following" not in user:
-                return  # No following list to update
-
-            following = user["following"]
-            if target_user_id in following:
-                following.remove(target_user_id)  # Remove the target_user_id
-                # Update the `following` list
-                USER_TABLE.update_item(
-                    Key={"id": user_id},
-                    UpdateExpression="SET following = :updated_list",
-                    ExpressionAttributeValues={":updated_list": following}
-                )
+        USER_TABLE.update_item(
+            Key={"id": user_id},
+            UpdateExpression="SET followers = list_append(if_not_exists(followers, :empty_list), :new_follower)",
+            ExpressionAttributeValues={":new_follower": [follower_id], ":empty_list": []}
+        )
     except ClientError as e:
-        print(f"Error updating following list for {user_id}: {e}")
         raise e
 
-def update_follower_list(user_id: str, follower_id: str, action: str):
-    """
-    Update the `followers` list for a user.
-    """
+def add_following(user_id: str, following_id: str):
     try:
-        if action == "add":
-            # Add the follower_id to the `followers` list
-            USER_TABLE.update_item(
-                Key={"id": user_id},
-                UpdateExpression="SET followers = list_append(if_not_exists(followers, :empty_list), :follower)",
-                ExpressionAttributeValues={
-                    ":follower": [follower_id],
-                    ":empty_list": []
-                }
-            )
-        elif action == "remove":
-            # Fetch the current followers list
-            response = USER_TABLE.get_item(Key={"id": user_id})
-            user = response.get("Item")
-            if not user or "followers" not in user:
-                return  # No followers list to update
-
-            followers = user["followers"]
-            if follower_id in followers:
-                followers.remove(follower_id)  # Remove the follower_id
-                # Update the `followers` list
-                USER_TABLE.update_item(
-                    Key={"id": user_id},
-                    UpdateExpression="SET followers = :updated_list",
-                    ExpressionAttributeValues={":updated_list": followers}
-                )
-    except ClientError as e:
-        print(f"Error updating followers list for {user_id}: {e}")
-        raise e
-
-
-# Follow User Helpers (in case you are maintaining a separate table for followers/followed)
-
-def follow_user(follower_id: str, followed_id: str):
-    """
-    Update the FOLLOW_TABLE when a user follows another user.
-    """
-    try:
-        FOLLOW_TABLE.update_item(
-            Key={"follower_id": follower_id},
-            UpdateExpression="SET following = list_append(if_not_exists(following, :empty_list), :new_user)",
-            ExpressionAttributeValues={":new_user": [followed_id], ":empty_list": []}
+        USER_TABLE.update_item(
+            Key={"id": user_id},
+            UpdateExpression="SET following = list_append(if_not_exists(following, :empty_list), :new_following)",
+            ExpressionAttributeValues={":new_following": [following_id], ":empty_list": []}
         )
     except ClientError as e:
         print(f"Error following user {follower_id} -> {followed_id}: {e}")
         raise e
 
-def unfollow_user(follower_id: str, followed_id: str):
-    """
-    Update the FOLLOW_TABLE when a user unfollows another user.
-    """
+def remove_follower(user_id: str, follower_id: str):
     try:
-        response = FOLLOW_TABLE.get_item(Key={"follower_id": follower_id})
+        response = USER_TABLE.get_item(Key={"id": user_id})
+        followers = response.get("Item", {}).get("followers", [])
+        if follower_id in followers:
+            followers.remove(follower_id)
+            USER_TABLE.update_item(
+                Key={"id": user_id},
+                UpdateExpression="SET followers = :updated_list",
+                ExpressionAttributeValues={":updated_list": followers}
+            )
+    except ClientError as e:
+        raise e
+
+def remove_following(user_id: str, following_id: str):
+    try:
+        response = USER_TABLE.get_item(Key={"id": user_id})
         following = response.get("Item", {}).get("following", [])
-        if followed_id in following:
-            following.remove(followed_id)
-            FOLLOW_TABLE.update_item(
-                Key={"follower_id": follower_id},
+        if following_id in following:
+            following.remove(following_id)
+            USER_TABLE.update_item(
+                Key={"id": user_id},
                 UpdateExpression="SET following = :updated_list",
                 ExpressionAttributeValues={":updated_list": following}
             )
     except ClientError as e:
         print(f"Error unfollowing user {follower_id} -> {followed_id}: {e}")
         raise e
+
+# Follow Table Helpers
+# def follow_user(follower_id: str, followed_id: str):
+#     try:
+#         FOLLOW_TABLE.update_item(
+#             Key={"follower_id": follower_id},
+#             UpdateExpression="SET following = list_append(if_not_exists(following, :empty_list), :new_user)",
+#             ExpressionAttributeValues={":new_user": [followed_id], ":empty_list": []}
+#         )
+#     except ClientError as e:
+#         raise e
+
+# def unfollow_user(follower_id: str, followed_id: str):
+#     try:
+#         response = FOLLOW_TABLE.get_item(Key={"follower_id": follower_id})
+#         following = response.get("Item", {}).get("following", [])
+#         if followed_id in following:
+#             following.remove(followed_id)
+#             FOLLOW_TABLE.update_item(
+#                 Key={"follower_id": follower_id},
+#                 UpdateExpression="SET following = :updated_list",
+#                 ExpressionAttributeValues={":updated_list": following}
+#             )
+#     except ClientError as e:
+#         raise e
