@@ -1,3 +1,7 @@
-Flask
-Flask-RESTful
 boto3
+fastapi
+uvicorn
+passlib
+python-jose
+python-dotenv
+PyJWT
