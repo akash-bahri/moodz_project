@@ -13,7 +13,7 @@ services:
       context: ./content_service
     container_name: content_service
     ports:
-      - "5002:5000"  # Host port 5002 forwards to container port 5000
+      - "5002:5002"  # Host port 5002 forwards to container port 5000
     networks:
       - app_network
 
