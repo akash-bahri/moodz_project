@@ -32,7 +32,7 @@ class FollowRequest(BaseModel):
     followed_id: str
 
 # Endpoints
-@router.get("/health")
+@router.get("/")
 def health():
     return {"status": "ok", "status_code": 200}
 
