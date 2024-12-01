@@ -17,6 +17,24 @@ services:
     networks:
       - app_network
 
+  feed_service:
+    build:
+      context: ./feed_service
+    container_name: feed_service
+    ports:
+      - "5003:5003"  # Host port 5003 forwards to container port 5000
+    networks:
+      - app_network
+
+  interaction_service:
+    build:
+      context: ./interaction_service
+    container_name: interaction_service
+    ports:
+      - "5004:5000"  # Host port 5004 forwards to container port 5000
+    networks:
+      - app_network
+
 networks:
   app_network:
     driver: bridge
