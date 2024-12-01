@@ -1,43 +1,37 @@
-from app import POSTS_TABLE, USER_TABLE
+import boto3
+import os
 from botocore.exceptions import ClientError
-from datetime import datetime
-import uuid
 
-# Helper Functions for Posts Table
+# Load environment variables
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+AWS_REGION = os.getenv("AWS_REGION")
+S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
 
-def create_post(user_id: str, content: str):
-    """Create a new post."""
-    # Check if user exists in the Users table
+# Initialize S3 Client
+s3_client = boto3.client(
+    "s3",
+    aws_access_key_id=AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+    region_name=AWS_REGION,
+)
+
+def upload_to_s3(file, filename):
+    """Upload a file to S3 and return the file URL."""
     try:
-        user = USER_TABLE.get_item(Key={"id": user_id}).get("Item")
-        if not user:
-            raise ValueError(f"User with id {user_id} does not exist.")
+        s3_client.upload_fileobj(file, S3_BUCKET_NAME, filename)
+        file_url = f"https://{S3_BUCKET_NAME}.s3.{AWS_REGION}.amazonaws.com/{filename}"
+        return file_url
     except ClientError as e:
-        raise e
+        raise Exception(f"Error uploading file to S3: {e}")
 
-    post_id = str(uuid.uuid4())
-    post_data = {
-        "post_id": post_id,
-        "user_id": user_id,
-        "content": content,
-        "created_at": str(datetime.utcnow()),
-        "likes": { },
-    }
-
+def save_text_to_s3(text_content, filename):
+    """Save text content as a .txt file in S3."""
     try:
-        POSTS_TABLE.put_item(Item=post_data)
-        return post_data
+        # Convert text content to bytes
+        file_data = text_content.encode("utf-8")
+        s3_client.put_object(Bucket=S3_BUCKET_NAME, Key=filename, Body=file_data)
+        file_url = f"https://{S3_BUCKET_NAME}.s3.{AWS_REGION}.amazonaws.com/{filename}"
+        return file_url
     except ClientError as e:
-        raise e
-
-
-def get_posts_by_user(user_id: str):
-    """Fetch all posts by a user."""
-    try:
-        response = POSTS_TABLE.scan(
-            FilterExpression="user_id = :user_id",
-            ExpressionAttributeValues={":user_id": user_id},
-        )
-        return response.get("Items", [])
-    except ClientError as e:
-        raise e
+        raise Exception(f"Error saving text to S3: {e}")

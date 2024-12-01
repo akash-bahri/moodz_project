@@ -1,7 +1,8 @@
-boto3
-fastapi
-uvicorn
-passlib
-python-jose
-python-dotenv
-PyJWT
+    fastapi
+    boto3
+    python-multipart
+    pydantic
+    uvicorn
+    redis
+    python-dotenv
+    pyjwt
