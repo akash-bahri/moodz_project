@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from app.models import get_user_by_username, get_user_by_id, create_user, follow_user, unfollow_user, add_follower, add_following, remove_follower, remove_following
+from app.models import get_user_by_username, get_user_by_id, create_user, add_follower, add_following, remove_follower, remove_following
 from app.utils import hash_password, verify_password, create_access_token
 import uuid
 from datetime import datetime

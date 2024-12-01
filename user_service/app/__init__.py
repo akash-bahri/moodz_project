@@ -29,7 +29,6 @@ dynamodb = boto3.resource(
 )
 # Define DynamoDB Tables
 USER_TABLE = dynamodb.Table("Users")
-FOLLOW_TABLE = dynamodb.Table("Follows")
 
 # Expose resources
 __all__ = ["USER_TABLE", "FOLLOW_TABLE"]

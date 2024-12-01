@@ -21,6 +21,7 @@ def create_post(user_id: str, content: str):
         "user_id": user_id,
         "content": content,
         "created_at": str(datetime.utcnow()),
+        "likes": { },
     }
 
     try:
