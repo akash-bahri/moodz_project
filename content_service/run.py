@@ -1,6 +1,9 @@
-from app import create_app
+import uvicorn
+from fastapi import FastAPI
+from app.routes import router
 
-app = create_app()
+app = FastAPI()
+app.include_router(router)
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000)
+    uvicorn.run("run:app", host="0.0.0.0", port=5002, reload=True)
