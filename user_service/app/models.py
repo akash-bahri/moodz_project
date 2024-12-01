@@ -2,7 +2,11 @@ from app import USER_TABLE
 from botocore.exceptions import ClientError
 
 # User Table Helpers
+
 def get_user_by_username(username: str):
+    """
+    Retrieve a user from the USERS table by their username.
+    """
     try:
         response = USER_TABLE.scan(
             FilterExpression="username = :username",
@@ -11,21 +15,30 @@ def get_user_by_username(username: str):
         items = response.get("Items", [])
         if not items:
             return None
-        return  items[0]
+        return items[0]  # Return the first matching user
     except ClientError as e:
+        print(f"Error retrieving user by username {username}: {e}")
         raise e
 
 def get_user_by_id(user_id: str):
+    """
+    Retrieve a user from the USERS table by their user ID.
+    """
     try:
         response = USER_TABLE.get_item(Key={"id": user_id})
-        return response.get("Item")
+        return response.get("Item")  # Return the full user data
     except ClientError as e:
+        print(f"Error retrieving user by ID {user_id}: {e}")
         raise e
 
 def create_user(user_data: dict):
+    """
+    Create a new user in the USERS table.
+    """
     try:
         USER_TABLE.put_item(Item=user_data)
     except ClientError as e:
+        print(f"Error creating user: {e}")
         raise e
     
 def add_follower(user_id: str, follower_id: str):
@@ -46,6 +59,7 @@ def add_following(user_id: str, following_id: str):
             ExpressionAttributeValues={":new_following": [following_id], ":empty_list": []}
         )
     except ClientError as e:
+        print(f"Error following user {follower_id} -> {followed_id}: {e}")
         raise e
 
 def remove_follower(user_id: str, follower_id: str):
@@ -74,6 +88,7 @@ def remove_following(user_id: str, following_id: str):
                 ExpressionAttributeValues={":updated_list": following}
             )
     except ClientError as e:
+        print(f"Error unfollowing user {follower_id} -> {followed_id}: {e}")
         raise e
 
 # Follow Table Helpers
