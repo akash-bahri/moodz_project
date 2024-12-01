@@ -1,12 +1,12 @@
-from flask import Flask
-from .routes import main
+from dotenv import load_dotenv
+import os
 
-def create_app():
-    app = Flask(__name__)
-    app.config.from_object('config.Config')
+# Load environment variables from .env file
+load_dotenv()
 
-    # Register Blueprints or Routes
-    
-    app.register_blueprint(main)
-
-    return app
+# Fetch environment variables
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+AWS_REGION = os.getenv("AWS_REGION")
+S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
+MAX_IMAGE_SIZE = int(os.getenv("MAX_IMAGE_SIZE", 5242880))  # 5MB
