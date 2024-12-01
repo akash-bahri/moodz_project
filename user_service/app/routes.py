@@ -32,6 +32,10 @@ class FollowRequest(BaseModel):
     followed_id: str
 
 # Endpoints
+@router.get("/")
+def health():
+    return {"status": "ok", "status_code": 200}
+
 @router.post("/register")
 def register(request: RegisterRequest):
     username = request.username

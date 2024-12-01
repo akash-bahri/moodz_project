@@ -50,8 +50,8 @@ def validate_file_size(file):
     if file_size > MAX_FILE_SIZE:
         raise HTTPException(status_code=400, detail="File is too large. Maximum size is 5MB.")
 
-from app import USER_TABLE
+# from app import USER_TABLE
 
-def get_user_from_db(user_id):
-    response = USER_TABLE.get_item(Key={"user_id": user_id})
-    return response.get("Item")
+# def get_user_from_db(user_id):
+#     response = USER_TABLE.get_item(Key={"user_id": user_id})
+#     return response.get("Item")
