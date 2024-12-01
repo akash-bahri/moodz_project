@@ -1,3 +1,3 @@
-class Config:
-    DEBUG = True
-    SECRET_KEY = 'AKKRPR'
+# class Config:
+#     DEBUG = True
+#     SECRET_KEY = 'AKKRPR'
