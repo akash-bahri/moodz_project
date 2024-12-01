@@ -62,41 +62,12 @@ def register(request: RegisterRequest):
         "password_hash": hashed_password,
         "followers": [],
         "following": [],
-        "followers": [],
-        "following": [],
         "created_at": str(datetime.utcnow())
     }
 
     create_user(user_data)  # Store the new user in DynamoDB
 
     return {"message": "User registered successfully", "user": {"id": user_id, "username": username}}
-
-
-@app.post("/follow")
-def follow(request: FollowRequest):
-    follower_id = request.follower_id
-    followed_id = request.followed_id
-
-    if not get_user_by_id(follower_id) or not get_user_by_id(followed_id):
-        raise HTTPException(status_code=404, detail="User not found")
-
-    add_following(follower_id, followed_id)
-    add_follower(followed_id, follower_id)
-
-    return {"message": f"User {follower_id} is now following User {followed_id}"}
-
-@app.post("/unfollow")
-def unfollow(request: FollowRequest):
-    follower_id = request.follower_id
-    followed_id = request.followed_id
-
-    if not get_user_by_id(follower_id) or not get_user_by_id(followed_id):
-        raise HTTPException(status_code=404, detail="User not found")
-
-    remove_following(follower_id, followed_id)
-    remove_follower(followed_id, follower_id)
-
-    return {"message": f"User {follower_id} has unfollowed User {followed_id}"}
 
 
 @app.post("/follow")
@@ -160,58 +131,6 @@ def get_user(request: GetUserRequest):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
-
-@router.post("/follow")
-def follow_user(request: FollowRequest):
-    """
-    Endpoint for a user to follow another user.
-    Updates the `following` list of the user and the `followers` list of the target user.
-    """
-    user_id = request.user_id
-    target_user_id = request.target_user_id
-
-    # Check if both users exist
-    if not get_user_by_id(user_id):
-        raise HTTPException(status_code=404, detail="User not found")
-    if not get_user_by_id(target_user_id):
-        raise HTTPException(status_code=404, detail="Target user not found")
-
-    # Check if the user is already following the target user
-    response = USER_TABLE.get_item(Key={"id": user_id})
-    user = response.get("Item")
-    if "following" in user and target_user_id in user["following"]:
-        return {"message": f"User {user_id} is already following {target_user_id}"}
-
-    # Update the `following` list of the user
-    update_following_list(user_id, target_user_id, action="add")
-
-    # Update the `followers` list of the target user
-    update_follower_list(target_user_id, user_id, action="add")
-
-    return {"message": f"User {user_id} is now following {target_user_id}"}
-
-@router.post("/unfollow")
-def unfollow_user(request: FollowRequest):
-    """
-    Endpoint for a user to unfollow another user.
-    Removes the `target_user_id` from the `following` list of the user and the `user_id` from the `followers` list of the target user.
-    """
-    user_id = request.user_id
-    target_user_id = request.target_user_id
-
-    # Check if both users exist
-    if not get_user_by_id(user_id):
-        raise HTTPException(status_code=404, detail="User not found")
-    if not get_user_by_id(target_user_id):
-        raise HTTPException(status_code=404, detail="Target user not found")
-
-    # Remove the `target_user_id` from the `following` list of the user
-    update_following_list(user_id, target_user_id, action="remove")
-
-    # Remove the `user_id` from the `followers` list of the target user
-    update_follower_list(target_user_id, user_id, action="remove")
-
-    return {"message": f"User {user_id} has unfollowed {target_user_id}"}
 
 # Add the router to the app
 app.include_router(router)
