@@ -9,6 +9,11 @@ class LikeRequest(BaseModel):
     post_id: str
     user_id: str
 
+# Endpoints
+@router.get("/")
+def health():
+    return {"status": "ok", "status_code": 200}
+
 @router.post("/like")
 def like(request: LikeRequest):
     post_id = request.post_id
