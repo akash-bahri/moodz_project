@@ -1,41 +1,14 @@
-from fastapi import FastAPI, HTTPException
-from app.models import get_follow_list, get_posts_by_user_ids
-from pydantic import BaseModel
-from datetime import datetime
+from fastapi import APIRouter, HTTPException
+from app.models import generate_feed
 
-app = FastAPI()
+router = APIRouter()
 
-
-# Request model for feed generation
-class FeedRequest(BaseModel):
-    user_id: str
-
-
-@app.post("/feed")
-def generate_feed(request: FeedRequest):
-    user_id = request.user_id
-
+# Endpoint to get the feed for the current user
+@router.get("/feed")
+def get_feed(user_id: str, max_posts_per_user: int = 10):
+    """Fetch and aggregate posts for the users the current user is following"""
     try:
-        # Get the follow list of the user
-        follow_list = get_follow_list(user_id)
-        if not follow_list:
-            raise HTTPException(status_code=404, detail="Follow list is empty")
-
-        # Fetch posts for the follow list
-        posts = get_posts_by_user_ids(follow_list)
-
-        # Sort posts by created_at (most recent first)
-        posts.sort(key=lambda x: x["created_at"], reverse=True)
-
-        # Select the top 10 most recent posts
-        feed = posts[:10]
-
+        feed = generate_feed(user_id, max_posts_per_user)
         return {"feed": feed}
-
-    except HTTPException as e:
-        raise e
     except Exception as e:
-        return {
-            "error": "An error occurred while generating the feed. Please refresh the page.",
-            "details": str(e),
-        }
+        raise HTTPException(status_code=500, detail=f"Error generating feed: {str(e)}")

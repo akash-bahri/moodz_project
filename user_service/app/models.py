@@ -90,28 +90,3 @@ def remove_following(user_id: str, following_id: str):
     except ClientError as e:
         print(f"Error unfollowing user {follower_id} -> {followed_id}: {e}")
         raise e
-
-# Follow Table Helpers
-# def follow_user(follower_id: str, followed_id: str):
-#     try:
-#         FOLLOW_TABLE.update_item(
-#             Key={"follower_id": follower_id},
-#             UpdateExpression="SET following = list_append(if_not_exists(following, :empty_list), :new_user)",
-#             ExpressionAttributeValues={":new_user": [followed_id], ":empty_list": []}
-#         )
-#     except ClientError as e:
-#         raise e
-
-# def unfollow_user(follower_id: str, followed_id: str):
-#     try:
-#         response = FOLLOW_TABLE.get_item(Key={"follower_id": follower_id})
-#         following = response.get("Item", {}).get("following", [])
-#         if followed_id in following:
-#             following.remove(followed_id)
-#             FOLLOW_TABLE.update_item(
-#                 Key={"follower_id": follower_id},
-#                 UpdateExpression="SET following = :updated_list",
-#                 ExpressionAttributeValues={":updated_list": following}
-#             )
-#     except ClientError as e:
-#         raise e
