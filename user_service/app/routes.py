@@ -72,16 +72,27 @@ def register(request: RegisterRequest):
 
 @app.post("/follow")
 def follow(request: FollowRequest):
+    """
+    Allow a user to follow another user, ensuring no duplicates.
+    """
     follower_id = request.follower_id
     followed_id = request.followed_id
 
     if not get_user_by_id(follower_id) or not get_user_by_id(followed_id):
         raise HTTPException(status_code=404, detail="User not found")
 
-    add_following(follower_id, followed_id)
-    add_follower(followed_id, follower_id)
+    # Add to following and followers, and check if the relationship already exists
+    following_added = add_following(follower_id, followed_id)
+    follower_added = add_follower(followed_id, follower_id)
+
+    if not following_added or not follower_added:
+        raise HTTPException(
+            status_code=409, 
+            detail=f"User {follower_id} already follows User {followed_id}"
+        )
 
     return {"message": f"User {follower_id} is now following User {followed_id}"}
+
 
 @app.post("/unfollow")
 def unfollow(request: FollowRequest):
