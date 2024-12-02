@@ -15,10 +15,10 @@ phases:
       - echo Building Docker images for all services...
 
       # Build Docker images for each microservice
-      - docker build -t feed ./feed
-      - docker build -t user ./user
-      - docker build -t content ./content
-      - docker build -t interaction ./interaction
+      - docker build -t feed ./feed_service
+      - docker build -t user ./user_service
+      - docker build -t content ./content_service
+      - docker build -t interaction ./interaction_service
 
       # Tag Docker images for ECR (replace with your account ID and repository names)
       - docker tag feed:latest 522814711764.dkr.ecr.us-east-1.amazonaws.com/feed:latest
