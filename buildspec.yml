@@ -5,23 +5,32 @@ phases:
     runtime-versions:
       docker: 18
     commands:
-      - echo Installing dependencies...
+      # Installing AWS CLI (if needed) and Docker
+      - echo Installing AWS CLI...
+      - apt-get update -y && apt-get install -y awscli
+      - echo Installing Docker...
+      - curl -fsSL https://get.docker.com -o get-docker.sh
+      - sh get-docker.sh
+      - docker --version
+      - aws --version
+      - echo Logging into Amazon ECR...
+      # Log in to ECR
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 522814711764.dkr.ecr.us-east-1.amazonaws.com
 
   pre_build:
     commands:
       - echo Setting up environment...
+
   build:
     commands:
       - echo Building Docker images for all services...
-
       # Build Docker images for each microservice
       - docker build -t feed ./feed_service
       - docker build -t user ./user_service
       - docker build -t content ./content_service
       - docker build -t interaction ./interaction_service
 
-      # Tag Docker images for ECR (replace with your account ID and repository names)
+      # Tag Docker images for ECR
       - docker tag feed:latest 522814711764.dkr.ecr.us-east-1.amazonaws.com/feed:latest
       - docker tag user:latest 522814711764.dkr.ecr.us-east-1.amazonaws.com/user:latest
       - docker tag content:latest 522814711764.dkr.ecr.us-east-1.amazonaws.com/content:latest
