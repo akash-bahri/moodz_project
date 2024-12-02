@@ -21,38 +21,17 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 # Function to create JWT access token
-def create_access_token(data: dict, expire_minutes: int = ACCESS_TOKEN_EXPIRE_MINUTES):
-    """
-    Generate a JWT token with an expiration time.
-    
-    Args:
-        data (dict): The user data to include in the token (e.g., user_id).
-        expire_minutes (int): The expiration time of the token in minutes (default is 30 minutes).
-    
-    Returns:
-        str: The encoded JWT token.
-    """
-    to_encode = data.copy()
+def create_access_token(data: dict, expire_minutes: int = 30):
     expire = datetime.utcnow() + timedelta(minutes=expire_minutes)
+    to_encode = data.copy()
     to_encode.update({"exp": expire})  # Add expiration time to the token payload
     
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm="HS256")  # JWT token encoding
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm="HS256")
     return encoded_jwt
+
 
 # Function to verify JWT token
 def verify_jwt_token(token: str):
-    """
-    Verify the JWT token and return the user_id.
-    
-    Args:
-        token (str): The JWT token to verify.
-    
-    Returns:
-        str: The user_id extracted from the token payload.
-    
-    Raises:
-        HTTPException: If the token is invalid or expired.
-    """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])  # Decode the token
         return payload["user_id"]  # Return the user_id from the token's payload

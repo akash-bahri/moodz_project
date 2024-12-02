@@ -1,60 +1,53 @@
-from fastapi import APIRouter, HTTPException, UploadFile, Form, Depends, Header
-from typing import Union
-from .models import upload_to_s3, save_text_to_s3
-from .utils import validate_file_type, validate_file_size, verify_jwt_token
-import uuid
-from datetime import datetime
+from fastapi import APIRouter, HTTPException, UploadFile, Form, Depends
+from pydantic import BaseModel
+from app.models import create_post
+from app.utils import verify_jwt_token  # Utility to verify and decode JWT token
+from fastapi.security import OAuth2PasswordBearer
 
-# Initialize the APIRouter
 router = APIRouter()
 
-def get_current_user(authorization: str = Header(...)):
-    """
-    Get the current user from the JWT token in the Authorization header.
-    """
-    token = authorization.split("Bearer ")[-1]  # Extract token from the Bearer scheme
-    user_id = verify_jwt_token(token)  # Verify the JWT token
-    return user_id
+# Initialize OAuth2PasswordBearer (for token extraction)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
+# Request Models
+class PostContentRequest(BaseModel):
+    content_type: str  # 'text' or 'image'
+    text_content: str = None  # Only for text posts
+    file: UploadFile = None  # Only for image posts
+
+from app.utils import verify_jwt_token  # Import the verify function
+
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    try:
+        payload = verify_jwt_token(token)  # Decodes the token
+        return payload["user_id"]  # Extract user_id from payload
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+
+# Endpoint for creating posts (text or image)
 @router.post("/create-post")
-async def create_post(
-    content_type: str = Form(...),  # Required form field
-    file: Union[UploadFile, None] = None,  # Optional file for image posts
-    text_content: Union[str, None] = Form(None),  # Optional form field for text posts
-    current_user: str = Depends(get_current_user)  # Get the current user from the token
+async def create_post_endpoint(
+    content_type: str = Form(...),
+    text_content: str = Form(None),
+    file: UploadFile = None,
+    user_id: str = Depends(get_current_user)  # Inject user_id
 ):
     """
-    Endpoint to create a new post (text or image), only accessible to logged-in users.
+    Create a post for the logged-in user.
     """
-    # Debugging logs
-    print(f"DEBUG: Received content_type={content_type}, file={file}, text_content={text_content}, user_id={current_user}")
+    # Validate content type
+    if content_type == "text":
+        if not text_content:
+            raise HTTPException(status_code=400, detail="Text content is required for text posts.")
+        post_id = create_post(user_id, text_content, "text")
+        return {"message": "Text post created successfully", "post_id": post_id}
 
-    # Handle text post
-    if content_type == "text" and text_content:
-        post_id = str(uuid.uuid4())
-        timestamp = datetime.utcnow().isoformat()
+    elif content_type == "image":
+        if not file:
+            raise HTTPException(status_code=400, detail="Image file is required for image posts.")
+        post_id = create_post(user_id, file, "image")
+        return {"message": "Image post created successfully", "post_id": post_id}
 
-        # Save text content to S3 as a .txt file
-        filename = f"text_posts/{post_id}.txt"
-        file_url = save_text_to_s3(text_content, filename)
-
-        return {"post_id": post_id, "timestamp": timestamp, "file_url": file_url}
-
-    # Handle image post
-    elif content_type == "image" and file:
-        # Validate file type and size
-        validate_file_type(file.filename)
-        validate_file_size(file.file)
-
-        # Generate a unique filename and upload to S3
-        filename = f"image_posts/{uuid.uuid4()}_{file.filename}"
-        file_url = upload_to_s3(file.file, filename)
-
-        post_id = str(uuid.uuid4())
-        timestamp = datetime.utcnow().isoformat()
-
-        return {"post_id": post_id, "timestamp": timestamp, "file_url": file_url}
-
-    # If no valid content type or content provided
     else:
-        raise HTTPException(status_code=400, detail="Invalid content type or missing content.")
+        raise HTTPException(status_code=400, detail="Invalid content type. Please use 'text' or 'image'.")
