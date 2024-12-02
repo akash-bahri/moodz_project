@@ -24,6 +24,10 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
     except Exception as e:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
+# Endpoints
+@router.get("/")
+def health():
+    return {"status": "ok", "status_code": 200}
 
 # Endpoint for creating posts (text or image)
 @router.post("/create-post")
