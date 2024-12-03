@@ -6,12 +6,13 @@ phases:
       docker: 18
     commands:
       # Installing AWS CLI (if needed) and Docker
-      - echo Installing AWS CLI...
-      - apt-get update -y && apt-get install -y awscli
-      - echo Installing Docker...
-      - curl -fsSL https://get.docker.com -o get-docker.sh
-      - sh get-docker.sh
-      - docker --version
+      # - echo Installing AWS CLI...
+      # - apt-get update -y && apt-get install -y awscli
+      # - yum install -y curl 
+      # - echo Installing Docker...
+      # - curl -fsSL https://get.docker.com -o get-docker.sh
+      # - sh get-docker.sh
+      # - docker --version
       - aws --version
       - echo Logging into Amazon ECR...
       # Log in to ECR
