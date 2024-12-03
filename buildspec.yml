@@ -27,24 +27,24 @@ phases:
     commands:
       - echo Building Docker images for all services...
       # Build Docker images for each microservice
-      - docker build -t feed ./feed_service
+      # - docker build -t feed ./feed_service
       - docker build -t user ./user_service
-      - docker build -t content ./content_service
-      - docker build -t interaction ./interaction_service
+      # - docker build -t content ./content_service
+      # - docker build -t interaction ./interaction_service
 
       # Tag Docker images for ECR
-      - docker tag feed:latest 522814711764.dkr.ecr.us-east-1.amazonaws.com/feed:latest
+      # - docker tag feed:latest 522814711764.dkr.ecr.us-east-1.amazonaws.com/feed:latest
       - docker tag user:latest 522814711764.dkr.ecr.us-east-1.amazonaws.com/user:latest
-      - docker tag content:latest 522814711764.dkr.ecr.us-east-1.amazonaws.com/content:latest
-      - docker tag interaction:latest 522814711764.dkr.ecr.us-east-1.amazonaws.com/interaction:latest
+      # - docker tag content:latest 522814711764.dkr.ecr.us-east-1.amazonaws.com/content:latest
+      # - docker tag interaction:latest 522814711764.dkr.ecr.us-east-1.amazonaws.com/interaction:latest
 
   post_build:
     commands:
       - echo Pushing Docker images to ECR...
-      - docker push 522814711764.dkr.ecr.us-east-1.amazonaws.com/feed:latest
+      # - docker push 522814711764.dkr.ecr.us-east-1.amazonaws.com/feed:latest
       - docker push 522814711764.dkr.ecr.us-east-1.amazonaws.com/user:latest
-      - docker push 522814711764.dkr.ecr.us-east-1.amazonaws.com/content:latest
-      - docker push 522814711764.dkr.ecr.us-east-1.amazonaws.com/interaction:latest
+      # - docker push 522814711764.dkr.ecr.us-east-1.amazonaws.com/content:latest
+      # - docker push 522814711764.dkr.ecr.us-east-1.amazonaws.com/interaction:latest
 
 artifacts:
   files:
