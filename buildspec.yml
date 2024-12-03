@@ -1,26 +1,27 @@
 version: 0.2
 
 phases:
-  install:
-    runtime-versions:
-      docker: 18
+  # install:
+  #   runtime-versions:
+  #     docker: 18
+  #   commands:
+  #     # Installing AWS CLI (if needed) and Docker
+  #     # - echo Installing AWS CLI...
+  #     # - apt-get update -y && apt-get install -y awscli
+  #     # - yum install -y curl 
+  #     # - echo Installing Docker...
+  #     # - curl -fsSL https://get.docker.com -o get-docker.sh
+  #     # - sh get-docker.sh
+  #     # - docker --version
+      
+  pre_build:
     commands:
-      # Installing AWS CLI (if needed) and Docker
-      # - echo Installing AWS CLI...
-      # - apt-get update -y && apt-get install -y awscli
-      # - yum install -y curl 
-      # - echo Installing Docker...
-      # - curl -fsSL https://get.docker.com -o get-docker.sh
-      # - sh get-docker.sh
-      # - docker --version
+      - echo Setting up environment...
       - aws --version
       - echo Logging into Amazon ECR...
       # Log in to ECR
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 522814711764.dkr.ecr.us-east-1.amazonaws.com
 
-  pre_build:
-    commands:
-      - echo Setting up environment...
 
   build:
     commands:
