@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "http://localhost:5001"  # Replace with your actual base URL
+BASE_URL = "http://localhost:5001"  
 
 def test_account_creation_flow():
     print("Testing Account Creation Flow...")
